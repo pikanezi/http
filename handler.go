@@ -12,3 +12,11 @@ func createHandler(handler HandlerFunc) http.HandlerFunc {
 		}
 	}
 }
+
+func Handle(route string, handler http.Handler) {
+	http.Handle(route, handler)
+}
+
+func ListenAndServe(addr string, handler http.Handler) error {
+	return http.ListenAndServe(addr, handler)
+}
