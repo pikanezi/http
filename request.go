@@ -58,9 +58,8 @@ func (self *Request) UploadAndGetAbsolutePath(key, pathFile string) (string, err
 	return absName, nil
 }
 
-// Returns an the JSON object from the body
-func (self *Request) GetJSONObject(object interface{}) (interface{}, error) {
-	self.Body.Close()
+func (self *Request) getBody() ([]byte, error) {
+	defer self.Body.Close()
 	body, err := ioutil.ReadAll(self.Body)
 	if err != nil {
 		return nil, err
@@ -68,5 +67,23 @@ func (self *Request) GetJSONObject(object interface{}) (interface{}, error) {
 	if debugMode {
 		self.debug("Body: \"%v\"", string(body))
 	}
+	return body, err
+}
+
+// Returns the JSON object from the body
+func (self *Request) GetAndReturnJSONObject(object interface{}) (interface{}, error) {
+	body, err := self.getBody()
+	if err != nil {
+		return nil, err
+	}
 	return object, json.Unmarshal(body, &object)
+}
+
+// Just call json.Unmarshal to the body and put it in the object
+func (self *Request) GetJSONObject(object interface{}) error {
+	body, err := self.getBody()
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(body, &object)
 }

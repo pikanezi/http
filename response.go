@@ -77,9 +77,8 @@ func (self *Response) debug(str string, values ...interface{}) {
 	fmt.Printf("[%v]: %v\n", self.Response.Request.Referer(), fmt.Sprintf("%v%v", str, values))
 }
 
-// Returns an the JSON object from the body
-func (self *Response) GetJSONObject(object interface{}) (interface{}, error) {
-	self.Body.Close()
+func (self *Response) getBody() ([]byte, error) {
+	defer self.Body.Close()
 	body, err := ioutil.ReadAll(self.Body)
 	if err != nil {
 		return nil, err
@@ -87,5 +86,23 @@ func (self *Response) GetJSONObject(object interface{}) (interface{}, error) {
 	if debugMode {
 		self.debug("Body: \"%v\"", string(body))
 	}
+	return body, err
+}
+
+// Returns an the JSON object from the body
+func (self *Response) GetAndReturnJSONObject(object interface{}) (interface{}, error) {
+	body, err := self.getBody()
+	if err != nil {
+		return nil, err
+	}
 	return object, json.Unmarshal(body, &object)
+}
+
+// Just call json.Unmarshal to the body and put it in the object
+func (self *Response) GetJSONObject(object interface{}) error {
+	body, err := self.getBody()
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(body, &object)
 }
