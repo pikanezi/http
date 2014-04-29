@@ -10,10 +10,10 @@ func SetDebug(debug bool) {
 
 type Error struct {
 	Error      string `json:"error,omitempty"`
-	StatusCode int    `json:"statusCode,omitempty"`
 	HttpCode   int    `json:"httpCode,omitempty"`
+	StatusCode int    `json:"statusCode,omitempty"`
 }
 
 func NewError(err error, statusCode, httpCode int) *Error {
-	return &Error{err.Error(), statusCode, httpCode}
+	return &Error{err.Error(), httpCode, statusCode}
 }
