@@ -4,7 +4,7 @@ var (
 	debugMode = false
 )
 
-func setDebug(debug bool) {
+func SetDebug(debug bool) {
 	debugMode = debug
 }
 
