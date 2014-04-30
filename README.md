@@ -53,7 +53,7 @@ func main() {
 
 ```
 
-Licencse
+License
 ====
 
 The MIT License (MIT)

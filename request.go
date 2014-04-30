@@ -19,7 +19,7 @@ func createRequest(r *http.Request) *Request {
 }
 
 func (self *Request) debug(str string, values ...interface{}) {
-	fmt.Printf("[%v]: %v\n", self.Referer(), fmt.Sprintf(str, values...))
+	fmt.Printf("[%v]: %v\n", self.RequestURI, fmt.Sprintf(str, values...))
 }
 
 // Upload the file, create a new file to the given path (for example "/tmp/")

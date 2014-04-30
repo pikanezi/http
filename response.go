@@ -74,7 +74,7 @@ type Response struct {
 }
 
 func (self *Response) debug(str string, values ...interface{}) {
-	fmt.Printf("[%v]: %v\n", self.Response.Request.Referer(), fmt.Sprintf("%v%v", str, values))
+	fmt.Printf("[%v]: %v\n", self.Response.Request.RequestURI, fmt.Sprintf("%v%v", str, values))
 }
 
 func (self *Response) getBody() ([]byte, error) {
