@@ -28,6 +28,17 @@ func (self *Request) debug(str string, values ...interface{}) {
 	fmt.Printf("[%v]: %v\n", self.Request.RequestURI, fmt.Sprintf(str, values...))
 }
 
+// Get the multiform body and returns it as a Reader.
+func (self *Request) GetFileReader(key string) (io.Reader, error) {
+	if debugMode {
+		self.debug("Trying to get file from the key \"%v\"", key)
+	}
+	fileMultiPart, _, err := self.FormFile(key)
+	if err != nil {
+		return nil, err
+	}
+	return fileMultiPart, nil
+}
 // Upload the file, create a new file to the given path (for example "/tmp/").
 func (self *Request) UploadAndGetFile(key, pathFile string) (*os.File, error) {
 	if debugMode {
