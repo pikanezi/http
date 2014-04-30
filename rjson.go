@@ -56,6 +56,7 @@ func SetDebug(debug bool) {
 	debugMode = debug
 }
 
+// The error type that must be used when returning from the Handlers.
 type Error struct {
 	Error      string `json:"error,omitempty"`
 	HttpCode   int    `json:"httpCode,omitempty"`

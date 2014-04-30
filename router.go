@@ -13,10 +13,12 @@ type Router struct {
 	hooks  []HandlerFunc
 }
 
+// Returns the domain of the Router.
 func (self *Router) Domain() string {
 	return self.domain
 }
 
+// Set the domain of the Router.
 func (self *Router) SetDomain(domain string) {
 	self.domain = domain
 }
@@ -36,22 +38,28 @@ func (self *Router) runHooks(w ResponseWriter, r *Request) *Error {
 	return nil
 }
 
+// Get registers a pattern with a handler for GET requests.
 func (self *Router) Get(route string, h HandlerFunc) *mux.Route {
 	return self.Add("GET", route, createHandler(h))
 }
 
+// Post registers a pattern with a handler for POST requests.
 func (self *Router) Post(route string, h HandlerFunc) *mux.Route {
 	return self.Add("POST", route, createHandler(h))
 }
 
+// Delete registers a pattern with a handler for DELETE requests.
 func (self *Router) Delete(route string, h HandlerFunc) *mux.Route {
 	return self.Add("DELETE", route, createHandler(h))
 }
 
+// Put registers a pattern with a handler for PUT requests.
 func (self *Router) Put(route string, h HandlerFunc) *mux.Route {
 	return self.Add("PUT", route, createHandler(h))
 }
 
+// ServeHTTP dispatches the handler registered in the matched route.
+// It performs any hooks and add the domain registered in the Router to be allowed for cross-domain requests.
 func (self *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	wr, rr := createResponseWriter(w), createRequest(r)
 	if strings.ToLower(r.Method) == "options" {

@@ -2,6 +2,8 @@ package http
 
 import "net/http"
 
+// The HandlerFunc must returns an Error that will be handled by the Router itself.
+// See implementation of the ServeHTTP method of the Router.
 type HandlerFunc func(ResponseWriter, *Request) *Error
 
 func createHandler(handler HandlerFunc) http.HandlerFunc {
@@ -13,10 +15,14 @@ func createHandler(handler HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// Handle registers the handler for the given pattern in the golang http DefaultServeMux.
+// This should be avoided, use ListenAndServe instead.
 func Handle(route string, handler http.Handler) {
 	http.Handle(route, handler)
 }
 
+// ListenAndServe listens on the TCP network address addr and then calls Serve with handler to handle requests on incoming connections.
+// Handler is typically the Router itself.
 func ListenAndServe(addr string, handler http.Handler) error {
 	return http.ListenAndServe(addr, handler)
 }
