@@ -18,11 +18,17 @@ func createRequest(r *http.Request) *Request {
 	return &Request{r}
 }
 
+// NewRequest returns a new Request given a method, URL, and optional body.
+func NewRequest(method, url string, body io.Reader) (*Request, error) {
+	r, err := http.NewRequest(method, url, body)
+	return createRequest(r), err
+}
+
 func (self *Request) debug(str string, values ...interface{}) {
 	fmt.Printf("[%v]: %v\n", self.Request.RequestURI, fmt.Sprintf(str, values...))
 }
 
-// Upload the file, create a new file to the given path (for example "/tmp/")
+// Upload the file, create a new file to the given path (for example "/tmp/").
 func (self *Request) UploadAndGetFile(key, pathFile string) (*os.File, error) {
 	if debugMode {
 		self.debug("Trying to get file from the key \"%v\"", key)
@@ -41,7 +47,7 @@ func (self *Request) UploadAndGetFile(key, pathFile string) (*os.File, error) {
 	return file, nil
 }
 
-// Same as UploadAndGetFile but returns the absolute path of the file
+// Same as UploadAndGetFile but returns the absolute path of the file.
 func (self *Request) UploadAndGetAbsolutePath(key, pathFile string) (string, error) {
 	file, err := self.UploadAndGetFile(key, pathFile)
 	if err != nil {
@@ -70,7 +76,7 @@ func (self *Request) getBody() ([]byte, error) {
 	return body, err
 }
 
-// Returns the JSON object from the body
+// Returns the JSON object from the body.
 func (self *Request) GetAndReturnJSONObject(object interface{}) (interface{}, error) {
 	body, err := self.getBody()
 	if err != nil {
@@ -79,7 +85,7 @@ func (self *Request) GetAndReturnJSONObject(object interface{}) (interface{}, er
 	return object, json.Unmarshal(body, &object)
 }
 
-// Just call json.Unmarshal to the body and put it in the object
+// Just call json.Unmarshal to the body and put it in the object.
 func (self *Request) GetJSONObject(object interface{}) error {
 	body, err := self.getBody()
 	if err != nil {

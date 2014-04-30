@@ -1,6 +1,7 @@
 package http
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -16,7 +17,7 @@ func createResponseWriter(r http.ResponseWriter) ResponseWriter {
 	return ResponseWriter{r, r.(http.Hijacker)}
 }
 
-func (self ResponseWriter) AddCORSHeaders(domain string) {
+func (self ResponseWriter) addCORSHeaders(domain string) {
 	self.Header().Add("Access-Control-Allow-Origin", domain)
 	self.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	self.Header().Add("Access-Control-Allow-Headers", "content-Type, authorization, accept")
@@ -24,7 +25,7 @@ func (self ResponseWriter) AddCORSHeaders(domain string) {
 	self.Header().Add("Access-Control-Allow-Credentials", "true")
 }
 
-//  Marshal a single key / value JSON and write it
+//  Marshal a single key / value JSON and write it.
 func (self ResponseWriter) WriteSingleStringJSON(key, value string) {
 	if debugMode {
 		self.Write([]byte(fmt.Sprintf("{\"%v\":\"%v\"}", key, value)))
@@ -33,7 +34,7 @@ func (self ResponseWriter) WriteSingleStringJSON(key, value string) {
 	}
 }
 
-// Marshal the Object and write it
+// Marshal the Object and write it.
 func (self ResponseWriter) WriteJSON(object interface{}) error {
 	if debugMode {
 		js, err := json.MarshalIndent(object, "", "  ")
@@ -51,7 +52,7 @@ func (self ResponseWriter) WriteJSON(object interface{}) error {
 	return nil
 }
 
-// Send an error using http.Error
+// Send an error using http.Error.
 func (self ResponseWriter) WriteError(customErr *Error) error {
 	if debugMode {
 		b, err := json.MarshalIndent(customErr, "", "  ")
@@ -73,6 +74,30 @@ type Response struct {
 	*http.Response
 }
 
+func createResponse(r *http.Response) *Response { return &Response{r} }
+
+// Issues a GET request to the given URL and returns the Response.
+func Get(url string) (*Response, error) {
+	r, err := http.Get(url)
+	return createResponse(r), err
+}
+
+// Issues a POST request of type "application/json" (the object will be marshaled as JSON) to the given URL.
+func PostJSON(url string, object interface{}) (*Response, error) {
+	objectJSON, err := json.Marshal(object)
+	if err != nil {
+		return nil, err
+	}
+	r, err := http.Post(url, "application/json", bytes.NewReader(objectJSON))
+	return createResponse(r), err
+}
+
+// PostForm issues a POST to the specified URL, with data's keys and values URL-encoded as the request body.
+func PostForm(url string, data url.values) (*Response, error) {
+	r, err := http.PostForm(url, data)
+	return createResponse(r), err
+}
+
 func (self *Response) debug(str string, values ...interface{}) {
 	fmt.Printf("[%v]: %v\n", self.Response.Request.RequestURI, fmt.Sprintf("%v%v", str, values))
 }
@@ -89,7 +114,7 @@ func (self *Response) getBody() ([]byte, error) {
 	return body, err
 }
 
-// Returns an the JSON object from the body
+// Returns an the JSON object from the body.
 func (self *Response) GetAndReturnJSONObject(object interface{}) (interface{}, error) {
 	body, err := self.getBody()
 	if err != nil {
@@ -98,7 +123,7 @@ func (self *Response) GetAndReturnJSONObject(object interface{}) (interface{}, e
 	return object, json.Unmarshal(body, &object)
 }
 
-// Just call json.Unmarshal to the body and put it in the object
+// Just call json.Unmarshal to the body and put it in the object.
 func (self *Response) GetJSONObject(object interface{}) error {
 	body, err := self.getBody()
 	if err != nil {
