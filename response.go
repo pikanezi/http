@@ -28,9 +28,9 @@ func (self ResponseWriter) addCORSHeaders(domain string) {
 //  Marshal a single key / value JSON and write it.
 func (self ResponseWriter) WriteSingleStringJSON(key, value string) {
 	if debugMode {
-		self.Write([]byte(fmt.Sprintf("{\"%v\":\"%v\"}", key, value)))
-	} else {
 		self.Write([]byte(fmt.Sprintf("{\n  \"%v\": \"%v\"\n}", key, value)))
+	} else {
+		self.Write([]byte(fmt.Sprintf("{\"%v\":\"%v\"}", key, value)))
 	}
 }
 
