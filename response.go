@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 )
 
 type ResponseWriter struct {
@@ -93,7 +94,7 @@ func PostJSON(url string, object interface{}) (*Response, error) {
 }
 
 // PostForm issues a POST to the specified URL, with data's keys and values URL-encoded as the request body.
-func PostForm(url string, data url.values) (*Response, error) {
+func PostForm(url string, data url.Values) (*Response, error) {
 	r, err := http.PostForm(url, data)
 	return createResponse(r), err
 }
