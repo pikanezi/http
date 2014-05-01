@@ -104,3 +104,9 @@ func (self *Request) GetJSONObject(object interface{}) error {
 	}
 	return json.Unmarshal(body, &object)
 }
+
+// Returns an URL param.
+// It is the same as calling request.Url.Query().Get(":key").
+func (self *Request) URLParam(key string) string {
+	return self.Request.URL.Query().Get(":" + key)
+}
