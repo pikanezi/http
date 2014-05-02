@@ -75,6 +75,25 @@ func (self *Request) UploadAndGetAbsolutePath(key, pathFile string) (string, err
 	return absName, nil
 }
 
+
+func (self *Request) UploadFileName(key, fileName string) (*os.File, error) {
+	if debugMode {
+		self.debug("Trying to get file from the key \"%v\"", key)
+	}
+	fileMultiPart, _, err := self.FormFile(key)
+	if err != nil {
+		return nil, err
+	}
+	file, err := os.Create(fileName)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := io.Copy(file, fileMultiPart); err != nil {
+		return nil, err
+	}
+	return file, nil
+}
+
 func (self *Request) getBody() ([]byte, error) {
 	defer self.Body.Close()
 	body, err := ioutil.ReadAll(self.Body)
