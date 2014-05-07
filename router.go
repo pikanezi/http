@@ -3,32 +3,97 @@ package http
 import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/pat"
+	"labix.org/v2/mgo/bson"
 	"net/http"
 	"strings"
+	"fmt"
 )
 
+var (
+	routers = []*Router{}
+)
+
+// MgoObject is a simple Object that has an Id (bson.ObjectId).
+type MgoObject struct {
+	ID bson.ObjectId `json:"id" bson:"_id,omitempty"`
+}
+
+// ObjectRester
+type ObjectRester interface {
+	GetRootURL() string
+}
+
+// Router is a pat.Router which has a domain for handling CORS requests
+// and hooks to execute some functions before executing the HandlerFunc.
 type Router struct {
 	*pat.Router
 	domain string
 	hooks  []HandlerFunc
 }
 
-// Returns the domain of the Router.
+// NewRouter returns a new Router.
+func NewRouter(domain string) *Router {
+	router := &Router{pat.New(), domain, make([]HandlerFunc, 0)}
+	routers = append(routers, router)
+	return router
+}
+
+// Domain returns the domain of the Router.
 func (self *Router) Domain() string {
 	return self.domain
 }
 
-// Set the domain of the Router.
+// SetDomain set the domain of the Router.
 func (self *Router) SetDomain(domain string) {
 	self.domain = domain
 }
 
-// Returns a new router with the given domain.
-func NewRouter(domain string) *Router { return &Router{pat.New(), domain, make([]HandlerFunc, 0)} }
-
 // Add a function to be executed before serving HTTP.
 func (self *Router) AddHooks(hooks ...HandlerFunc) { self.hooks = append(self.hooks, hooks...) }
 
+// Register add a POST, GET, PUT and DELETE HandlerFunc to add, get, edit and delete an instance of this object.
+// Example:
+//
+// 		type User struct {
+//			http.MgoObject
+//			Name string `json:"name"`
+//		}
+//
+//		func (user *User) GetRootURL() string { return "users" }
+//
+//		func main() {
+//			r := http.NewRouter("example.com")
+//			r.Register(&User{})
+//			http.ListenAndServe(":8080", r)
+//		}
+//
+func (self *Router) Register(object ObjectRester) {
+	self.registerGet(object)
+	self.registerDelete(object)
+	self.registerPost(object)
+	self.registerPut(object)
+}
+
+func (self *Router) registerGet(object ObjectRester) {
+	self.Get(fmt.Sprintf("/%v", object.GetRootURL()), func(w ResponseWriter, r *Request) *Error {
+
+			return nil
+		})
+}
+
+func (self *Router) registerDelete(object ObjectRester) {
+
+}
+
+func (self *Router) registerPut(object ObjectRester) {
+
+}
+
+func (self *Router) registerPost(object ObjectRester) {
+
+}
+
+// runHooks run each hooks from the Router.
 func (self *Router) runHooks(w ResponseWriter, r *Request) *Error {
 	for _, hook := range self.hooks {
 		if err := hook(w, r); err != nil {
