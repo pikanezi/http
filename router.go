@@ -3,7 +3,6 @@ package http
 import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/pat"
-	"labix.org/v2/mgo/bson"
 	"net/http"
 	"strings"
 	"fmt"
@@ -13,14 +12,13 @@ var (
 	routers = []*Router{}
 )
 
-// MgoObject is a simple Object that has an Id (bson.ObjectId).
-type MgoObject struct {
-	ID bson.ObjectId `json:"id" bson:"_id,omitempty"`
-}
-
 // ObjectRester
 type ObjectRester interface {
 	GetRootURL() string
+	Get(ResponseWriter, *Request) *Error
+	Post(ResponseWriter, *Request) *Error
+	Put(ResponseWriter, *Request) *Error
+	Delete(ResponseWriter, *Request) *Error
 }
 
 // Router is a pat.Router which has a domain for handling CORS requests
@@ -55,42 +53,46 @@ func (self *Router) AddHooks(hooks ...HandlerFunc) { self.hooks = append(self.ho
 // Example:
 //
 // 		type User struct {
-//			http.MgoObject
 //			Name string `json:"name"`
 //		}
 //
-//		func (user *User) GetRootURL() string { return "users" }
+// 		var (
+//			Jonathan = &User{"Jonathan"}
+//			Vincent = &User{"Vincent"}
+//		)
+//
+//		type UserHandler struct {}
+//
+//		func (handler *UserHandler) GetRootURL() string { return "users" }
+//
+//		func (handler *UserHandler) Get(w http.ResponseWriter, r *http.Request) *http.Error {
+//			// Do something
+//		}
+//
+//		func (handler *UserHandler) Post(w http.ResponseWriter, r *http.Request) *http.Error {
+//			// Do something
+//		}
+//
+//		func (handler *UserHandler) Put(w http.ResponseWriter, r *http.Request) *http.Error {
+//			// Do something
+//		}
+//
+//		func (handler *UserHandler) Delete(w http.ResponseWriter, r *http.Request) *http.Error {
+//			// Do something
+//		}
 //
 //		func main() {
 //			r := http.NewRouter("example.com")
-//			r.Register(&User{})
+//			r.Register(&UserHandler{})
 //			http.ListenAndServe(":8080", r)
 //		}
 //
 func (self *Router) Register(object ObjectRester) {
-	self.registerGet(object)
-	self.registerDelete(object)
-	self.registerPost(object)
-	self.registerPut(object)
-}
-
-func (self *Router) registerGet(object ObjectRester) {
-	self.Get(fmt.Sprintf("/%v", object.GetRootURL()), func(w ResponseWriter, r *Request) *Error {
-
-			return nil
-		})
-}
-
-func (self *Router) registerDelete(object ObjectRester) {
-
-}
-
-func (self *Router) registerPut(object ObjectRester) {
-
-}
-
-func (self *Router) registerPost(object ObjectRester) {
-
+	route := fmt.Sprintf("/%v", object.GetRootURL())
+	self.Get(route, object.Get)
+	self.Post(route, object.Post)
+	self.Put(route, object.Put)
+	self.Delete(route, object.Delete)
 }
 
 // runHooks run each hooks from the Router.
