@@ -13,20 +13,20 @@ type Router struct {
 	hooks  []HandlerFunc
 }
 
-// Returns the domain of the Router.
+// Domain returns the domain of the Router.
 func (self *Router) Domain() string {
 	return self.domain
 }
 
-// Set the domain of the Router.
+// SetDomain set the domain of the Router.
 func (self *Router) SetDomain(domain string) {
 	self.domain = domain
 }
 
-// Returns a new router with the given domain.
+// NewRouter returns a new router with the given domain.
 func NewRouter(domain string) *Router { return &Router{pat.New(), domain, make([]HandlerFunc, 0)} }
 
-// Add a function to be executed before serving HTTP.
+// AddHooks add a function to be executed before serving HTTP.
 func (self *Router) AddHooks(hooks ...HandlerFunc) { self.hooks = append(self.hooks, hooks...) }
 
 func (self *Router) runHooks(w ResponseWriter, r *Request) *Error {

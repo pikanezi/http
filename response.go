@@ -26,7 +26,7 @@ func (self ResponseWriter) addCORSHeaders(domain string) {
 	self.Header().Add("Access-Control-Allow-Credentials", "true")
 }
 
-//  Marshal a single key / value JSON and write it.
+//  WriteSingleStringJSON marshal a single key / value JSON and write it.
 func (self ResponseWriter) WriteSingleStringJSON(key, value string) {
 	if debugMode {
 		self.Write([]byte(fmt.Sprintf("{\n  \"%v\": \"%v\"\n}", key, value)))
@@ -35,7 +35,7 @@ func (self ResponseWriter) WriteSingleStringJSON(key, value string) {
 	}
 }
 
-// Marshal the Object and write it.
+// WriteJSON marshal the Object and write it.
 func (self ResponseWriter) WriteJSON(object interface{}) error {
 	if debugMode {
 		js, err := json.MarshalIndent(object, "", "  ")
@@ -53,7 +53,7 @@ func (self ResponseWriter) WriteJSON(object interface{}) error {
 	return nil
 }
 
-// Send an error using http.Error.
+// WriteError send an error using http.Error.
 func (self ResponseWriter) WriteError(customErr *Error) error {
 	if debugMode {
 		b, err := json.MarshalIndent(customErr, "", "  ")
@@ -77,13 +77,13 @@ type Response struct {
 
 func createResponse(r *http.Response) *Response { return &Response{r} }
 
-// Issues a GET request to the given URL and returns the Response.
+// Get issues a GET request to the given URL and returns the Response.
 func Get(url string) (*Response, error) {
 	r, err := http.Get(url)
 	return createResponse(r), err
 }
 
-// Issues a POST request of type "application/json" (the object will be marshaled as JSON) to the given URL.
+// PostJSON issues a POST request of type "application/json" (the object will be marshaled as JSON) to the given URL.
 func PostJSON(url string, object interface{}) (*Response, error) {
 	objectJSON, err := json.Marshal(object)
 	if err != nil {
@@ -115,7 +115,7 @@ func (self *Response) getBody() ([]byte, error) {
 	return body, err
 }
 
-// Returns an the JSON object from the body.
+// GetAndReturnJSONObject returns an the JSON object from the body.
 func (self *Response) GetAndReturnJSONObject(object interface{}) (interface{}, error) {
 	body, err := self.getBody()
 	if err != nil {
@@ -124,7 +124,7 @@ func (self *Response) GetAndReturnJSONObject(object interface{}) (interface{}, e
 	return object, json.Unmarshal(body, &object)
 }
 
-// Just call json.Unmarshal to the body and put it in the object.
+// GetJSONObject just call json.Unmarshal to the body and put it in the object.
 func (self *Response) GetJSONObject(object interface{}) error {
 	body, err := self.getBody()
 	if err != nil {

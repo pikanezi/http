@@ -52,6 +52,7 @@ var (
 	debugMode = false
 )
 
+// SetDebug set the debug at true so it prints some debug.
 func SetDebug(debug bool) {
 	debugMode = debug
 }
@@ -63,7 +64,7 @@ type Error struct {
 	StatusCode int    `json:"statusCode,omitempty"`
 }
 
-// Create a new Error.
+// NewError returns a new Error.
 func NewError(err error, statusCode, httpCode int) *Error {
 	return &Error{err.Error(), httpCode, statusCode}
 }

@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 )
 
+// Request represents an HTTP request received by a server or to be sent by a client.
 type Request struct {
 	*http.Request
 }
@@ -25,10 +27,10 @@ func NewRequest(method, url string, body io.Reader) (*Request, error) {
 }
 
 func (self *Request) debug(str string, values ...interface{}) {
-	fmt.Printf("[%v]: %v\n", self.Request.RequestURI, fmt.Sprintf(str, values...))
+	log.Printf("[%v]: %v\n", self.Request.RequestURI, fmt.Sprintf(str, values...))
 }
 
-// Get the multiform body and returns it as a Reader.
+// GetFileReader get the multiform body and returns it as a Reader.
 func (self *Request) GetFileReader(key string) (io.Reader, error) {
 	if debugMode {
 		self.debug("Trying to get file from the key \"%v\"", key)
@@ -39,7 +41,8 @@ func (self *Request) GetFileReader(key string) (io.Reader, error) {
 	}
 	return fileMultiPart, nil
 }
-// Upload the file, create a new file to the given path (for example "/tmp/").
+
+// UploadAndGetFile upload the file, create a new file to the given path (for example "/tmp/").
 func (self *Request) UploadAndGetFile(key, pathFile string) (*os.File, error) {
 	if debugMode {
 		self.debug("Trying to get file from the key \"%v\"", key)
@@ -58,7 +61,7 @@ func (self *Request) UploadAndGetFile(key, pathFile string) (*os.File, error) {
 	return file, nil
 }
 
-// Same as UploadAndGetFile but returns the absolute path of the file.
+// UploadAndGetAbsolutePath is the same as UploadAndGetFile but returns the absolute path of the file.
 func (self *Request) UploadAndGetAbsolutePath(key, pathFile string) (string, error) {
 	file, err := self.UploadAndGetFile(key, pathFile)
 	if err != nil {
@@ -75,7 +78,7 @@ func (self *Request) UploadAndGetAbsolutePath(key, pathFile string) (string, err
 	return absName, nil
 }
 
-
+// UploadFileName uploads the file from the request and save it in the given fileName.
 func (self *Request) UploadFileName(key, fileName string) (*os.File, error) {
 	if debugMode {
 		self.debug("Trying to get file from the key \"%v\"", key)
@@ -106,7 +109,7 @@ func (self *Request) getBody() ([]byte, error) {
 	return body, err
 }
 
-// Returns the JSON object from the body.
+// GetAndReturnJSONObject returns the JSON object from the body.
 func (self *Request) GetAndReturnJSONObject(object interface{}) (interface{}, error) {
 	body, err := self.getBody()
 	if err != nil {
@@ -115,7 +118,7 @@ func (self *Request) GetAndReturnJSONObject(object interface{}) (interface{}, er
 	return object, json.Unmarshal(body, &object)
 }
 
-// Just call json.Unmarshal to the body and put it in the object.
+// GetJSONObject just call json.Unmarshal to the body and put it in the object.
 func (self *Request) GetJSONObject(object interface{}) error {
 	body, err := self.getBody()
 	if err != nil {
@@ -124,7 +127,7 @@ func (self *Request) GetJSONObject(object interface{}) error {
 	return json.Unmarshal(body, &object)
 }
 
-// Returns an URL param.
+// URLParam returns an URL param.
 // It is the same as calling request.Url.Query().Get(":key").
 func (self *Request) URLParam(key string) string {
 	return self.Request.URL.Query().Get(":" + key)
