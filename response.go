@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 )
+
 // A ResponseWriter interface is used by an HTTP handler to construct an HTTP response.
 type ResponseWriter struct {
 	http.ResponseWriter
@@ -26,7 +27,7 @@ func (rw ResponseWriter) addCORSHeaders(domain string) {
 	rw.Header().Add("Access-Control-Allow-Credentials", "true")
 }
 
-//  WriteSingleStringJSON marshal a single key / value JSON and write it.
+// WriteSingleStringJSON marshal a single key / value JSON and write it.
 func (rw ResponseWriter) WriteSingleStringJSON(key, value string) {
 	if debugMode {
 		rw.Write([]byte(fmt.Sprintf("{\n  \"%v\": \"%v\"\n}", key, value)))
