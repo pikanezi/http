@@ -1,5 +1,5 @@
 /*
-Override of net/http and gorilla/pat golang library to use JSON with Request and ResponseWritter in a more easy way.
+Package http overrides net/http and gorilla/pat golang library to use JSON with Request and ResponseWritter in a more easy way.
 
 Its purpose is to create web server sending and receiving JSON data in few lines.
 
@@ -57,10 +57,10 @@ func SetDebug(debug bool) {
 	debugMode = debug
 }
 
-// The error type that must be used when returning from the Handlers.
+// Error is a type that must be used when returning from the Handlers.
 type Error struct {
 	Error      string `json:"error,omitempty"`
-	HttpCode   int    `json:"httpCode,omitempty"`
+	HTTPCode   int    `json:"httpCode,omitempty"`
 	StatusCode int    `json:"statusCode,omitempty"`
 }
 
