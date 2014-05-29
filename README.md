@@ -5,6 +5,8 @@ Override of net/http and gorilla/pat golang library to use JSON with Request and
 
 Its purpose is to create web server sending and receiving JSON data in few lines.
 
+See documentation of gorilla/pat here : http://www.gorillatoolkit.org/pkg/pat
+
 ---
 
 Full Example

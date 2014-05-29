@@ -2,7 +2,7 @@ package http
 
 import "net/http"
 
-// The HandlerFunc must returns an Error that will be handled by the Router itself.
+// HandlerFunc must returns an Error that will be handled by the Router itself.
 // See implementation of the ServeHTTP method of the Router.
 type HandlerFunc func(ResponseWriter, *Request) *Error
 

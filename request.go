@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 )
 
+// Request represents an HTTP request received by a server or to be sent by a client.
 type Request struct {
 	*http.Request
 }
@@ -24,27 +26,28 @@ func NewRequest(method, url string, body io.Reader) (*Request, error) {
 	return createRequest(r), err
 }
 
-func (self *Request) debug(str string, values ...interface{}) {
-	fmt.Printf("[%v]: %v\n", self.Request.RequestURI, fmt.Sprintf(str, values...))
+func (req *Request) debug(str string, values ...interface{}) {
+	log.Printf("[%v]: %v\n", req.Request.RequestURI, fmt.Sprintf(str, values...))
 }
 
-// Get the multiform body and returns it as a Reader.
-func (self *Request) GetFileReader(key string) (io.Reader, error) {
+// GetFileReader get the multiform body and returns it as a Reader.
+func (req *Request) GetFileReader(key string) (io.Reader, error) {
 	if debugMode {
-		self.debug("Trying to get file from the key \"%v\"", key)
+		req.debug("Trying to get file from the key \"%v\"", key)
 	}
-	fileMultiPart, _, err := self.FormFile(key)
+	fileMultiPart, _, err := req.FormFile(key)
 	if err != nil {
 		return nil, err
 	}
 	return fileMultiPart, nil
 }
-// Upload the file, create a new file to the given path (for example "/tmp/").
-func (self *Request) UploadAndGetFile(key, pathFile string) (*os.File, error) {
+
+// UploadAndGetFile upload the file, create a new file to the given path (for example "/tmp/").
+func (req *Request) UploadAndGetFile(key, pathFile string) (*os.File, error) {
 	if debugMode {
-		self.debug("Trying to get file from the key \"%v\"", key)
+		req.debug("Trying to get file from the key \"%v\"", key)
 	}
-	fileMultiPart, fileHeader, err := self.FormFile(key)
+	fileMultiPart, fileHeader, err := req.FormFile(key)
 	if err != nil {
 		return nil, err
 	}
@@ -58,9 +61,9 @@ func (self *Request) UploadAndGetFile(key, pathFile string) (*os.File, error) {
 	return file, nil
 }
 
-// Same as UploadAndGetFile but returns the absolute path of the file.
-func (self *Request) UploadAndGetAbsolutePath(key, pathFile string) (string, error) {
-	file, err := self.UploadAndGetFile(key, pathFile)
+// UploadAndGetAbsolutePath is the same as UploadAndGetFile but returns the absolute path of the file.
+func (req *Request) UploadAndGetAbsolutePath(key, pathFile string) (string, error) {
+	file, err := req.UploadAndGetFile(key, pathFile)
 	if err != nil {
 		return "", err
 	}
@@ -70,37 +73,62 @@ func (self *Request) UploadAndGetAbsolutePath(key, pathFile string) (string, err
 		return "", err
 	}
 	if debugMode {
-		self.debug("Got file \"%v\"", absName)
+		req.debug("Got file \"%v\"", absName)
 	}
 	return absName, nil
 }
 
-func (self *Request) getBody() ([]byte, error) {
-	defer self.Body.Close()
-	body, err := ioutil.ReadAll(self.Body)
+// UploadFileName uploads the file from the request and save it in the given fileName.
+func (req *Request) UploadFileName(key, fileName string) (*os.File, error) {
+	if debugMode {
+		req.debug("Trying to get file from the key \"%v\"", key)
+	}
+	fileMultiPart, _, err := req.FormFile(key)
+	if err != nil {
+		return nil, err
+	}
+	file, err := os.Create(fileName)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := io.Copy(file, fileMultiPart); err != nil {
+		return nil, err
+	}
+	return file, nil
+}
+
+func (req *Request) getBody() ([]byte, error) {
+	defer req.Body.Close()
+	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		return nil, err
 	}
 	if debugMode {
-		self.debug("Body: \"%v\"", string(body))
+		req.debug("Body: \"%v\"", string(body))
 	}
 	return body, err
 }
 
-// Returns the JSON object from the body.
-func (self *Request) GetAndReturnJSONObject(object interface{}) (interface{}, error) {
-	body, err := self.getBody()
+// GetAndReturnJSONObject returns the JSON object from the body.
+func (req *Request) GetAndReturnJSONObject(object interface{}) (interface{}, error) {
+	body, err := req.getBody()
 	if err != nil {
 		return nil, err
 	}
 	return object, json.Unmarshal(body, &object)
 }
 
-// Just call json.Unmarshal to the body and put it in the object.
-func (self *Request) GetJSONObject(object interface{}) error {
-	body, err := self.getBody()
+// GetJSONObject just call json.Unmarshal to the body and put it in the object.
+func (req *Request) GetJSONObject(object interface{}) error {
+	body, err := req.getBody()
 	if err != nil {
 		return err
 	}
 	return json.Unmarshal(body, &object)
+}
+
+// URLParam returns an URL param.
+// It is the same as calling request.Url.Query().Get(":key").
+func (req *Request) URLParam(key string) string {
+	return req.Request.URL.Query().Get(":" + key)
 }
