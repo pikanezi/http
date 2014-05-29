@@ -65,11 +65,11 @@ func (router *Router) Put(route string, h HandlerFunc) *mux.Route {
 // It performs any hooks and add the domain registered in the Router to be allowed for cross-domain requests.
 func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	wr, rr := createResponseWriter(w), createRequest(r)
+	wr.addCORSHeaders(router.domain)
 	if strings.ToLower(r.Method) == "options" {
 		http.Redirect(wr, r, r.RequestURI, 200)
 		return
 	}
-	wr.addCORSHeaders(router.domain)
 	if err := router.runHooks(wr, rr); err != nil {
 		wr.WriteError(err)
 		return
