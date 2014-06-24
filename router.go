@@ -12,22 +12,25 @@ import (
 // pat docs: http://godoc.org/github.com/bmizerany/pat
 type Router struct {
 	*pat.Router
-	domain string
-	hooks  []HandlerFunc
+
+	customHeaders Header
+	hooks         []HandlerFunc
 }
 
-// Domain returns the domain of the Router.
-func (router *Router) Domain() string {
-	return router.domain
-}
+// Header represents custom header to be set to the response before .
+type Header map[string]string
 
-// SetDomain set the domain of the Router.
-func (router *Router) SetDomain(domain string) {
-	router.domain = domain
-}
+// Add add a key-value pair to the header.
+func (h Header) Add(key, value string) { h[key] = value }
+
+// SetCustomHeader set the customHeader of the router.
+func (router *Router) SetCustomHeader(customHeader Header) { router.customHeaders = customHeader }
+
+// CustomHeader returns the customHeaders of the router.
+func (router *Router) CustomHeader() Header { return router.customHeaders }
 
 // NewRouter returns a new router with the given domain.
-func NewRouter(domain string) *Router { return &Router{pat.New(), domain, make([]HandlerFunc, 0)} }
+func NewRouter() *Router { return &Router{pat.New(), nil, make([]HandlerFunc, 0)} }
 
 // AddHooks add a function to be executed before serving HTTP.
 func (router *Router) AddHooks(hooks ...HandlerFunc) { router.hooks = append(router.hooks, hooks...) }
@@ -65,7 +68,7 @@ func (router *Router) Put(route string, h HandlerFunc) *mux.Route {
 // It performs any hooks and add the domain registered in the Router to be allowed for cross-domain requests.
 func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	wr, rr := createResponseWriter(w), createRequest(r)
-	wr.addCORSHeaders(router.domain)
+	wr.addCustomPreHeader(router.customHeaders)
 	if strings.ToLower(r.Method) == "options" {
 		http.Redirect(wr, r, r.RequestURI, 200)
 		return
