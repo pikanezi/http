@@ -13,13 +13,15 @@ Full Example
 ====
 
 ```go
+
 import (
     "github.com/pikanezi/http"
     "log"
 )
 
 const (
-    KEY = "SECRET_KEY"
+    key = "SECRET_KEY"
+    corsDomain = "http://localhost:63342"
 )
 
 func SecureHook(w http.ResponseWriter, r *http.Request) *http.Error {
@@ -35,16 +37,24 @@ type Object struct {
 
 func HelloWorldHandler(w http.ResponseWriter, r *http.Request) *http.Error {
     object := &Object{"Hello World"}
-    if err := w.WriteJSON(object); err != nil {
-        return &http.Error{Error: err.Error()
-    }
+     w.WriteJSON(object)
+     return nil
 }
 
 func main() {
 
-    // NewRouter takes the domain to authorize it cross-domains requests
-    r := http.NewRouter("example.com")
+    r := http.NewRouter()
     
+    // Set the custom headers to be set before the Handler handle the request.
+    // It is useful for handling the CORS.
+    r.SetCustomHeader(http.Header{
+		"Access-Control-Allow-Origin":      domainCORS,
+		"Access-Control-Allow-Methods":     "POST, GET, OPTIONS, PUT, DELETE",
+		"Access-Control-Allow-Headers":     "Content-Type, Authorization, Accept, x-api-key",
+		"Access-Control-Allow-Max-Age":     "604800",
+		"Access-Control-Allow-Credentials": "true",
+	})
+	
     // Add a Hook, every Hooks will be executed before executing an Handler
     r.AddHooks(SecureHook)
     

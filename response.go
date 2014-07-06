@@ -20,12 +20,10 @@ func CreateResponseWriter(r http.ResponseWriter) ResponseWriter {
 	return ResponseWriter{r, r.(http.Hijacker)}
 }
 
-func (rw ResponseWriter) addCORSHeaders(domain string) {
-	rw.Header().Add("Access-Control-Allow-Origin", domain)
-	rw.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	rw.Header().Add("Access-Control-Allow-Headers", "content-Type, authorization, accept")
-	rw.Header().Add("Access-Control-Max-Age", "604800")
-	rw.Header().Add("Access-Control-Allow-Credentials", "true")
+func (rw ResponseWriter) addCustomPreHeader(headers Header) {
+	for key, value := range headers {
+		rw.Header().Add(key, value)
+	}
 }
 
 // WriteSingleStringJSON marshal a single key / value JSON and write it.
