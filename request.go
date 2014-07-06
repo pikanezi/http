@@ -16,7 +16,8 @@ type Request struct {
 	*http.Request
 }
 
-func createRequest(r *http.Request) *Request {
+// Create a new Request from a classic Request.
+func CreateRequest(r *http.Request) *Request {
 	return &Request{r}
 }
 

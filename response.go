@@ -15,7 +15,8 @@ type ResponseWriter struct {
 	http.Hijacker
 }
 
-func createResponseWriter(r http.ResponseWriter) ResponseWriter {
+// CreateResponseWriter create a new ResponseWriter from a classic ResponseWriter.
+func CreateResponseWriter(r http.ResponseWriter) ResponseWriter {
 	return ResponseWriter{r, r.(http.Hijacker)}
 }
 
