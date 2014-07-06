@@ -24,7 +24,7 @@ func CreateRequest(r *http.Request) *Request {
 // NewRequest returns a new Request given a method, URL, and optional body.
 func NewRequest(method, url string, body io.Reader) (*Request, error) {
 	r, err := http.NewRequest(method, url, body)
-	return createRequest(r), err
+	return CreateRequest(r), err
 }
 
 func (req *Request) debug(str string, values ...interface{}) {
