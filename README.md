@@ -3,7 +3,10 @@ Http
 
 Override of net/http and gorilla/pat golang library to use JSON with Request and ResponseWritter in a more easy way.
 
-Its purpose is to create web server sending and receiving JSON data in few lines.
+Its purpose is to create API service sending and receiving JSON data.
+
+On each Route, we can attach interceptors (which are simple HandlerFunc) to be called before, after or when an error is returned by the handler.
+
 
 See documentation of gorilla/pat here : http://www.gorillatoolkit.org/pkg/pat
 
@@ -86,6 +89,7 @@ func main() {
 	r.Get("/hello/world", HelloWorldHandler).Before(CheckAdminInterceptor)
 	r.Post("/object", AddObjectHandler)
     r.Post("/file", GetFileHandler)
+    r.Post("/files", MultiFileHandler)
     
 	log.Fatal(http.ListenAndServe(":8080", r)
 }
