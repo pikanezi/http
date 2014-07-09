@@ -19,6 +19,10 @@ import (
 	"log"
 )
 
+const (
+	errorWrongObject = iota << 2
+)
+
 type Object struct {
 	SomeField string `json:"someField,omitempty"`
 }
@@ -40,6 +44,22 @@ func CheckAdminInterceptor(w http.ResponseWriter, r *http.Request) *http.Error {
 }
 
 
+func AddObjectHandler(w http.ResponseWriter, r *http.Request) *http.Error {
+	object := &Object{}
+	if err := r.GetJSONObject(&object); err != nil {
+		return http.NewError(err, 500)
+	}
+	// handle object
+	return nil
+}
+
+// GetFileReader works only for single file reader.
+func GetFileHandler(w http.ResponseWriter, r *http.Request) *http.Error {
+	reader, err := r.GetFileReader("file")
+	// Handler reader
+	return nil
+}
+
 func main() {
 	r := http.NewRouter()
     
@@ -54,6 +74,7 @@ func main() {
 	})
 	
 	r.Get("/hello/world", HelloWorldHandler).Before(CheckAdminInterceptor)
+    r.Post("/object", AddObjectHandler)
     
 	log.Fatal(http.ListenAndServe(":8080", r)
 }
