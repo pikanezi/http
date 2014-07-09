@@ -19,18 +19,6 @@ import (
     "log"
 )
 
-const (
-    key = "SECRET_KEY"
-    corsDomain = "http://localhost:63342"
-)
-
-func SecureHook(w http.ResponseWriter, r *http.Request) *http.Error {
-    if r.Header.Get("x-api-key") != KEY {
-        return &http.Error{Error:"Wrong API Key", HttpCode: 403}
-    }
-    return nil
-}
-
 type Object struct {
     SomeField string `json:"someField,omitempty"`
 }
@@ -55,9 +43,6 @@ func main() {
 		"Access-Control-Allow-Credentials": "true",
 	})
 	
-    // Add a Hook, every Hooks will be executed before executing an Handler
-    r.AddHooks(SecureHook)
-    
     r.Get("/hello/world", HelloWorldHandler)
     
     log.Fatal(http.ListenAndServe(":8080", r)
