@@ -50,7 +50,15 @@ type Error struct {
 	StatusCode int    `json:"statusCode,omitempty"`
 }
 
-// NewError returns a new Error.
-func NewError(err error, statusCode, httpCode int) *Error {
+// NewErrorAPI returns a new Error with a statusCode.
+func NewErrorAPI(err error, statusCode, httpCode int) *Error {
 	return &Error{err.Error(), httpCode, statusCode}
+}
+
+// NewError returns a new Error.
+func NewError(err error, httpCode int) *Error {
+	return &Error{
+		Error:    err.Error(),
+		HTTPCode: httpCode,
+	}
 }
