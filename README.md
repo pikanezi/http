@@ -15,27 +15,37 @@ Full Example
 ```go
 
 import (
-    "github.com/pikanezi/http"
-    "log"
+	"github.com/pikanezi/http"
+	"log"
 )
 
 type Object struct {
-    SomeField string `json:"someField,omitempty"`
+	SomeField string `json:"someField,omitempty"`
 }
 
 func HelloWorldHandler(w http.ResponseWriter, r *http.Request) *http.Error {
-    object := &Object{"Hello World"}
-     w.WriteJSON(object)
-     return nil
+	object := &Object{"Hello World"}
+	w.WriteJSON(object)
+	return nil
 }
 
-func main() {
+func AdminHandler(w http.ResponseWriter, r *http.Request) *http.Error {
+	w.WriteJSON("Hello Admin!")
+	return nil
+}
 
-    r := http.NewRouter()
+func CheckAdminInterceptor(w http.ResponseWriter, r *http.Request) *http.Error {
+	// Check if user is an Admin
+	return nil
+}
+
+
+func main() {
+	r := http.NewRouter()
     
-    // Set the custom headers to be set before the Handler handle the request.
-    // It is useful for handling the CORS.
-    r.SetCustomHeader(http.Header{
+	// Set the custom headers to be set before the Handler handle the request.
+	// It is useful for handling the CORS.
+	r.SetCustomHeader(http.Header{
 		"Access-Control-Allow-Origin":      domainCORS,
 		"Access-Control-Allow-Methods":     "POST, GET, OPTIONS, PUT, DELETE",
 		"Access-Control-Allow-Headers":     "Content-Type, Authorization, Accept, x-api-key",
@@ -43,9 +53,9 @@ func main() {
 		"Access-Control-Allow-Credentials": "true",
 	})
 	
-    r.Get("/hello/world", HelloWorldHandler)
+	r.Get("/hello/world", HelloWorldHandler).Before(CheckAdminInterceptor)
     
-    log.Fatal(http.ListenAndServe(":8080", r)
+	log.Fatal(http.ListenAndServe(":8080", r)
 }
 
 ```
