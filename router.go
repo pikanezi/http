@@ -1,7 +1,6 @@
 package http
 
 import (
-	"github.com/gorilla/mux"
 	"github.com/gorilla/pat"
 	"net/http"
 	"strings"
@@ -14,7 +13,6 @@ type Router struct {
 	*pat.Router
 
 	customHeaders Header
-	hooks         []HandlerFunc
 }
 
 // Header represents custom header to be set to the response before .
@@ -30,51 +28,49 @@ func (router *Router) SetCustomHeader(customHeader Header) { router.customHeader
 func (router *Router) CustomHeader() Header { return router.customHeaders }
 
 // NewRouter returns a new router with the given domain.
-func NewRouter() *Router { return &Router{pat.New(), nil, make([]HandlerFunc, 0)} }
-
-// AddHooks add a function to be executed before serving HTTP.
-func (router *Router) AddHooks(hooks ...HandlerFunc) { router.hooks = append(router.hooks, hooks...) }
-
-func (router *Router) runHooks(w ResponseWriter, r *Request) *Error {
-	for _, hook := range router.hooks {
-		if err := hook(w, r); err != nil {
-			return err
-		}
+func NewRouter() *Router {
+	return &Router{
+		Router:        pat.New(),
+		customHeaders: nil,
 	}
-	return nil
+}
+
+func (router *Router) add(method, route string, h HandlerFunc) *RouteHandler {
+	handler := &RouteHandler{
+		Route:        router.Add(method, route, createHandler(h)),
+		handlerFunc:  h,
+		interceptors: make([]*interceptor, 0),
+	}
+	return handler
 }
 
 // Get registers a pattern with a handler for GET requests.
-func (router *Router) Get(route string, h HandlerFunc) *mux.Route {
-	return router.Add("GET", route, createHandler(h))
+func (router *Router) Get(route string, h HandlerFunc) *RouteHandler {
+	return router.add("GET", route, h)
 }
 
 // Post registers a pattern with a handler for POST requests.
-func (router *Router) Post(route string, h HandlerFunc) *mux.Route {
-	return router.Add("POST", route, createHandler(h))
+func (router *Router) Post(route string, h HandlerFunc) *RouteHandler {
+	return router.add("POST", route, h)
 }
 
 // Delete registers a pattern with a handler for DELETE requests.
-func (router *Router) Delete(route string, h HandlerFunc) *mux.Route {
-	return router.Add("DELETE", route, createHandler(h))
+func (router *Router) Delete(route string, h HandlerFunc) *RouteHandler {
+	return router.add("DELETE", route, h)
 }
 
 // Put registers a pattern with a handler for PUT requests.
-func (router *Router) Put(route string, h HandlerFunc) *mux.Route {
-	return router.Add("PUT", route, createHandler(h))
+func (router *Router) Put(route string, h HandlerFunc) *RouteHandler {
+	return router.add("PUT", route, h)
 }
 
 // ServeHTTP dispatches the handler registered in the matched route.
 // It performs any hooks and add the domain registered in the Router to be allowed for cross-domain requests.
 func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	wr, rr := CreateResponseWriter(w), CreateRequest(r)
+	wr := CreateResponseWriter(w)
 	wr.addCustomPreHeader(router.customHeaders)
 	if strings.ToLower(r.Method) == "options" {
 		http.Redirect(wr, r, r.RequestURI, 200)
-		return
-	}
-	if err := router.runHooks(wr, rr); err != nil {
-		wr.WriteError(err)
 		return
 	}
 	router.Router.ServeHTTP(w, r)

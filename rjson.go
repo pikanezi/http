@@ -1,5 +1,5 @@
 /*
-Package http overrides net/http and gorilla/pat golang library to use JSON with Request and ResponseWritter in a more easy way.
+Package http overrides net/http and gorilla/pat golang library to use JSON with Request and ResponseWriter in a more easy way.
 
 Its purpose is to create web server sending and receiving JSON data in few lines.
 
@@ -9,17 +9,6 @@ Full Example
     	"github.com/pikanezi/http"
     	"log"
 	)
-
-	const (
-    	KEY = "SECRET_KEY"
-	)
-
-	func SecureHook(w http.ResponseWriter, r *http.Request) *http.Error {
-    	if r.Header.Get("x-api-key") != KEY {
-        	return &http.Error{Error:"Wrong API Key", HttpCode: 403}
-    	}
-    	return nil
-	}
 
 	type Object struct {
     	SomeField string `json:"someField,omitempty"`
@@ -35,10 +24,7 @@ Full Example
 	func main() {
 
     	// NewRouter takes the domain to authorize it cross-domains requests
-    	r := http.NewRouter("example.com")
-
-    	// Add a Hook, every Hooks will be executed before executing an Handler
-    	r.AddHooks(SecureHook)
+    	r := http.NewRouter()
 
     	r.Get("/hello/world", HelloWorldHandler)
 
