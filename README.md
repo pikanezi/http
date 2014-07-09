@@ -16,6 +16,7 @@ Full Example
 
 import (
 	"github.com/pikanezi/http"
+	"io"
 	"log"
 )
 
@@ -56,7 +57,16 @@ func AddObjectHandler(w http.ResponseWriter, r *http.Request) *http.Error {
 // GetFileReader works only for single file reader.
 func GetFileHandler(w http.ResponseWriter, r *http.Request) *http.Error {
 	reader, err := r.GetFileReader("file")
-	// Handler reader
+	// Handle file Reader
+	return nil
+}
+
+func MultiFileHandler(w http.ResponseWriter, r *http.Request) *http.Error {
+	if err := r.ForEachFile("files", func (index int, reader io.Reader) {
+		// Do something with each file Reader
+	}); err != nil {
+		return http.NewError(err, 500)
+	}
 	return nil
 }
 
