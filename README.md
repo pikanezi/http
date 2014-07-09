@@ -74,7 +74,8 @@ func main() {
 	})
 	
 	r.Get("/hello/world", HelloWorldHandler).Before(CheckAdminInterceptor)
-    r.Post("/object", AddObjectHandler)
+	r.Post("/object", AddObjectHandler)
+    r.Post("/file", GetFileHandler)
     
 	log.Fatal(http.ListenAndServe(":8080", r)
 }
