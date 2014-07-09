@@ -2,27 +2,37 @@ package http
 
 import (
 	"fmt"
-	"github.com/pikanezi/http"
+	"io"
+	"io/ioutil"
 	"testing"
 )
 
 func ExampleNewRouter() {
-	router := http.NewRouter()
+	router := NewRouter()
 
-	router.Get("/", func(w http.ResponseWriter, r *http.Request) *http.Error {
+	router.Get("/", func(w ResponseWriter, r *Request) *Error {
 		w.WriteJSON("Hello!")
 		return nil
 	})
 
-	router.Get("/admin", func(w http.ResponseWriter, r *http.Request) *http.Error {
+	router.Get("/admin", func(w ResponseWriter, r *Request) *Error {
 		// do stuff
 		return nil
-	}).Before(func(w http.ResponseWriter, r *http.Request) *http.Error {
+	}).Before(func(w ResponseWriter, r *Request) *Error {
 		// check if user is an admin
 		return nil
 	})
 
-	http.ListenAndServe(":8080", router)
+	router.Post("/upload", func(w ResponseWriter, r *Request) *Error {
+		if err := r.ForEachFile("file", func(index int, reader io.Reader) error {
+			// Do something with the reader
+			return nil
+		}); err != nil {
+			return NewError(err, 400)
+		}
+		return nil
+	})
+	ListenAndServe(":8080", router)
 }
 
 func TestHandler(t *testing.T) {
@@ -39,7 +49,25 @@ func TestHandler(t *testing.T) {
 		fmt.Println("after Handler!")
 		return nil
 	})
+
+	filesHander := HandlerFunc(func(w ResponseWriter, r *Request) *Error {
+		if err := r.ForEachFile("file", func(index int, reader io.Reader) error {
+			buffer, err := ioutil.ReadAll(reader)
+			if err != nil {
+				return err
+			}
+			fmt.Println(buffer)
+			return nil
+		}); err != nil {
+			return NewError(err, 400)
+		}
+		w.WriteJSON("OK")
+		return nil
+	})
+
 	r := NewRouter()
 	r.Get("/", mainHandler).Before(beforeMainHandler).After(afterMainHandler)
+	r.Post("/files", filesHander)
+
 	ListenAndServe(":5555", r)
 }

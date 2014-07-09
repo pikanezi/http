@@ -43,6 +43,28 @@ func (req *Request) GetFileReader(key string) (io.Reader, error) {
 	return fileMultiPart, nil
 }
 
+// ForEachFile calls the function f with every io.Reader contained in the provided form key.
+// After every call to f, the file is close.
+func (req *Request) ForEachFile(key string, f func (int, io.Reader) error) error {
+	if err := req.ParseMultipartForm(32 << 2); err != nil {
+		return err
+	}
+	if req.MultipartForm != nil && req.MultipartForm.File[key] != nil {
+		fileHeaders := req.MultipartForm.File[key]
+		for index, fileheader := range fileHeaders {
+			file, err := fileheader.Open()
+			if err != nil {
+				return err
+			}
+			if err := f(index, file); err != nil {
+				return err
+			}
+			file.Close()
+		}
+	}
+	return nil
+}
+
 // UploadAndGetFile upload the file, create a new file to the given path (for example "/tmp/").
 func (req *Request) UploadAndGetFile(key, pathFile string) (*os.File, error) {
 	if debugMode {
