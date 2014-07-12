@@ -6,10 +6,8 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"net/http"
-	"os"
-	"path/filepath"
 	"mime/multipart"
+	"net/http"
 )
 
 // Request represents an HTTP request received by a server or to be sent by a client.
@@ -70,7 +68,7 @@ func (req *Request) ForEachFileReader(key string, f func(int, io.Reader) error) 
 
 // ForEachFileHeader calls the function f with every multipart.FileHeader contained in the provided form key.
 // Opening and closing the file is the responsibility of the user.
-func (req *Request) ForEachFileHeader(key string, f func(int, multipart.FileHeader) error) error {
+func (req *Request) ForEachFileHeader(key string, f func(int, *multipart.FileHeader) error) error {
 	if err := req.ParseMultipartForm(32 << 2); err != nil {
 		return err
 	}
@@ -83,61 +81,6 @@ func (req *Request) ForEachFileHeader(key string, f func(int, multipart.FileHead
 		}
 	}
 	return nil
-}
-
-// UploadAndGetFile upload the file, create a new file to the given path (for example "/tmp/").
-func (req *Request) UploadAndGetFile(key, pathFile string) (*os.File, error) {
-	if debugMode {
-		req.debug("Trying to get file from the key \"%v\"", key)
-	}
-	fileMultiPart, fileHeader, err := req.FormFile(key)
-	if err != nil {
-		return nil, err
-	}
-	file, err := os.Create(fmt.Sprintf("%v%v", pathFile, fileHeader.Filename))
-	if err != nil {
-		return nil, err
-	}
-	if _, err := io.Copy(file, fileMultiPart); err != nil {
-		return nil, err
-	}
-	return file, nil
-}
-
-// UploadAndGetAbsolutePath is the same as UploadAndGetFile but returns the absolute path of the file.
-func (req *Request) UploadAndGetAbsolutePath(key, pathFile string) (string, error) {
-	file, err := req.UploadAndGetFile(key, pathFile)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-	absName, err := filepath.Abs(file.Name())
-	if err != nil {
-		return "", err
-	}
-	if debugMode {
-		req.debug("Got file \"%v\"", absName)
-	}
-	return absName, nil
-}
-
-// UploadFileName uploads the file from the request and save it in the given fileName.
-func (req *Request) UploadFileName(key, fileName string) (*os.File, error) {
-	if debugMode {
-		req.debug("Trying to get file from the key \"%v\"", key)
-	}
-	fileMultiPart, _, err := req.FormFile(key)
-	if err != nil {
-		return nil, err
-	}
-	file, err := os.Create(fileName)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := io.Copy(file, fileMultiPart); err != nil {
-		return nil, err
-	}
-	return file, nil
 }
 
 func (req *Request) getBody() ([]byte, error) {
