@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"mime/multipart"
 )
 
 // Request represents an HTTP request received by a server or to be sent by a client.
@@ -43,9 +44,9 @@ func (req *Request) GetFileReader(key string) (io.Reader, error) {
 	return fileMultiPart, nil
 }
 
-// ForEachFile calls the function f with every io.Reader contained in the provided form key.
+// ForEachFileReader calls the function f with every io.Reader contained in the provided form key.
 // After every call to f, the file is close.
-func (req *Request) ForEachFile(key string, f func (int, io.Reader) error) error {
+func (req *Request) ForEachFileReader(key string, f func(int, io.Reader) error) error {
 	if err := req.ParseMultipartForm(32 << 2); err != nil {
 		return err
 	}
@@ -59,7 +60,26 @@ func (req *Request) ForEachFile(key string, f func (int, io.Reader) error) error
 			if err := f(index, file); err != nil {
 				return err
 			}
-			file.Close()
+			if err := file.Close(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// ForEachFileHeader calls the function f with every multipart.FileHeader contained in the provided form key.
+// Opening and closing the file is the responsibility of the user.
+func (req *Request) ForEachFileHeader(key string, f func(int, multipart.FileHeader) error) error {
+	if err := req.ParseMultipartForm(32 << 2); err != nil {
+		return err
+	}
+	if req.MultipartForm != nil && req.MultipartForm.File[key] != nil {
+		fileHeaders := req.MultipartForm.File[key]
+		for index, fileheader := range fileHeaders {
+			if err := f(index, fileheader); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
