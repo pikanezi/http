@@ -29,7 +29,7 @@ func (rw ResponseWriter) addCustomPreHeader(headers Header) {
 
 // WriteSingleStringJSON marshal a single key / value JSON and write it.
 func (rw ResponseWriter) WriteSingleStringJSON(key, value string) {
-	rw.Header().Add("Content-Type", "application/json")
+	rw.Header().Add("Content-Type", "application/json; charset=utf-8")
 	if debugMode {
 		rw.Write([]byte(fmt.Sprintf("{\n  \"%v\": \"%v\"\n}", key, value)))
 	} else {
@@ -39,7 +39,7 @@ func (rw ResponseWriter) WriteSingleStringJSON(key, value string) {
 
 // WriteJSON marshal the Object and write it.
 func (rw ResponseWriter) WriteJSON(object interface{}) error {
-	rw.Header().Add("Content-Type", "application/json")
+	rw.Header().Add("Content-Type", "application/json; charset=utf-8")
 	if debugMode {
 		js, err := json.MarshalIndent(object, "", "  ")
 		if err != nil {
