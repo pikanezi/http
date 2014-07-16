@@ -8,6 +8,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"encoding/xml"
 )
 
 // Request represents an HTTP request received by a server or to be sent by a client.
@@ -111,6 +112,15 @@ func (req *Request) GetJSONObject(object interface{}) error {
 		return err
 	}
 	return json.Unmarshal(body, &object)
+}
+
+// GetXMLObject jus call xml.Unmarshal to the body and put it in the object.
+func (req *Request) GetXMLObject(object interface{}) error {
+	body, err := req.getBody()
+	if err != nil {
+		return err
+	}
+	return xml.Unmarshal(body, &object)
 }
 
 // URLParam returns an URL param.

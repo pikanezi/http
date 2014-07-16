@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"encoding/xml"
 )
 
 // A ResponseWriter interface is used by an HTTP handler to construct an HTTP response.
@@ -134,4 +135,13 @@ func (resp *Response) GetJSONObject(object interface{}) error {
 		return err
 	}
 	return json.Unmarshal(body, &object)
+}
+
+// GetXMLObject jus call xml.Unmarshal to the body and put it in the object.
+func (resp *Response) GetXMLObject(object interface{}) error {
+	body, err := resp.getBody()
+	if err != nil {
+		return err
+	}
+	return xml.Unmarshal(body, &object)
 }
