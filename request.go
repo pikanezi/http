@@ -91,7 +91,7 @@ func (req *Request) getBody() ([]byte, error) {
 		return nil, err
 	}
 	if debugMode {
-		req.debug("Body: \"%v\"", string(body))
+		req.debug("Body: %v", string(body))
 	}
 	return body, err
 }

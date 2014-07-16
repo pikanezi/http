@@ -114,7 +114,7 @@ func (resp *Response) getBody() ([]byte, error) {
 		return nil, err
 	}
 	if debugMode {
-		resp.debug("Body: \"%v\"", string(body))
+		resp.debug("Body: %v", string(body))
 	}
 	return body, err
 }
